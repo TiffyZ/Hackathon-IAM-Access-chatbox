@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAM Database Assistant</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Background container -->
+    <div class="background-container"></div>
+
+    <!-- Floating button -->
+    <div class="chatbot-button" id="chatbotBtn">
+        <svg fill="white" viewBox="0 0 24 24">
+            <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/>
+        </svg>
+        <div class="notification-badge" id="notificationBadge"></div>
+    </div>
+
+    <!-- Chatbot dialog -->
+    <div class="chatbot-container" id="chatbotContainer">
+        <div class="chatbot-header">
+            <div>
+                <h3>Database Query Assistant</h3>
+                <p class="user-name" id="userName">User: Sarah Lee</p>
+            </div>
+            <button class="close-btn" id="closeBtn">×</button>
+        </div>
+
+        <div class="chatbot-messages" id="messagesContainer">
+        </div>
+
+        <div class="chatbot-input-area">
+            <input 
+                type="text" 
+                class="chatbot-input" 
+                id="chatInput" 
+                placeholder="Ask a question... e.g., Query identities created in the past 30 days"
+                autocomplete="off"
+            />
+            <button class="send-btn" id="sendBtn">Send</button>
+        </div>
+
+        <!-- Loading animation -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <!-- Details panel removed in simplified version -->
+
+    <script src="script.js"></script>
+</body>
+</html>
