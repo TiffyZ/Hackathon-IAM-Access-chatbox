@@ -242,7 +242,7 @@ body {
 
 /* User message */
 .user-message {
-    justify-content: flex-end;
+    align-items: flex-end;
 }
 
 .user-message p {
@@ -258,7 +258,6 @@ body {
 
 /* Assistant message */
 .assistant-message {
-    justify-content: flex-start;
     align-items: flex-start;
 }
 

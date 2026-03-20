@@ -210,7 +210,7 @@ function loadGreeting() {
     addMessage("Hello Sarah Lee! I hope you're having a wonderful Thursday, March 19, 2026. 🌞", "assistant");
     
     // Message 2: Warning
-    addMessage("⚠️ Warning:\n You have 1 account is about to expire soon.", "assistant");
+    addMessage("⚠️ Warning:\n 1 of your accounts is about to expire.", "assistant");
     
     console.log("Initial messages added successfully");
 }
