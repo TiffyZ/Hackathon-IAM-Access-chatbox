@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: iam-chatbot-frontend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: ""
+    startCommand: "python frontend.py"
+    staticPublicPath: /
+    autoDeploy: true
+    routes:
+      - type: http
+        path: /

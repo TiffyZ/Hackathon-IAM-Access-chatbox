@@ -224,6 +224,7 @@ body {
 
 .message {
     display: flex;
+    flex-direction: column;
     margin-bottom: 8px;
     animation: fadeIn 0.3s ease;
 }
@@ -258,6 +259,7 @@ body {
 /* Assistant message */
 .assistant-message {
     justify-content: flex-start;
+    align-items: flex-start;
 }
 
 .assistant-message p {
@@ -269,6 +271,46 @@ body {
     word-wrap: break-word;
     font-size: 14px;
     line-height: 1.4;
+    margin: 0 0 0 0;
+}
+
+.assistant-message .table-container {
+    max-width: 90%;
+    background: #e9ecef;
+    border-radius: 12px;
+}
+
+/* Table styles within messages */
+.table-container {
+    margin-top: 10px;
+    padding: 8px;
+    background: transparent;
+    overflow-x: auto;
+    border-radius: 0;
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: white;
+}
+
+.table-container table th,
+.table-container table td {
+    padding: 10px 12px;
+    text-align: left;
+    border: 1px solid #bbb;
+}
+
+.table-container table th {
+    background-color: #eee;
+    font-weight: 600;
+    color: #333;
+}
+
+.table-container table tbody tr:hover {
+    background-color: #fafafa;
 }
 
 /* Message details button */

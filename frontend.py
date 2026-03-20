@@ -7,10 +7,10 @@ Start HTTP server to serve frontend files
 import os
 import http.server
 import socketserver
-import webbrowser
 from pathlib import Path
 
-PORT = 8000
+# Use PORT from environment variable (Render sets this) or default to 8000
+PORT = int(os.getenv("PORT", 8000))
 HANDLER = http.server.SimpleHTTPRequestHandler
 
 def start_frontend():
@@ -20,19 +20,13 @@ def start_frontend():
     print("")
     print("╔════════════════════════════════════════════════════════╗")
     print("║  🌐 IAM Chatbot Frontend Started                        ║")
-    print(f"║  📍 Access URL: http://localhost:{PORT:<3}                           ║")
+    print(f"║  📍 Listening on: 0.0.0.0:{PORT:<3}                           ║")
     print("║  ⚠️  Press Ctrl+C to stop the server                     ║")
     print("╚════════════════════════════════════════════════════════╝")
     print("")
     
-    # Try to open the browser
-    try:
-        webbrowser.open(f"http://localhost:{PORT}")
-    except:
-        pass
-    
     # Start the server
-    with socketserver.TCPServer(("", PORT), HANDLER) as httpd:
+    with socketserver.TCPServer(("0.0.0.0", PORT), HANDLER) as httpd:
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:

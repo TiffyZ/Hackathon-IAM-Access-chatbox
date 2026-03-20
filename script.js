@@ -1,5 +1,5 @@
-// API Configuration
-const API_URL = "http://127.0.0.1:5000/api/chat";
+// API Configuration - Using CORS proxy to bypass cross-origin restrictions
+const API_URL = "https://cors-anywhere.herokuapp.com/http://54.234.0.211:5000/query";
 
 // DOM Elements
 const chatbotBtn = document.getElementById("chatbotBtn");
@@ -14,8 +14,12 @@ const notificationBadge = document.getElementById("notificationBadge");
 // State
 let isOpen = false;
 
-// Show 2-second loading animation on page load
+// Show 2-second loading animation and load greeting on page load
 window.addEventListener("load", () => {
+    // Load greeting messages
+    loadGreeting();
+    
+    // Show 2-second loading animation
     chatbotBtn.classList.add("loading");
     setTimeout(() => {
         chatbotBtn.classList.remove("loading");
@@ -71,26 +75,77 @@ async function sendMessage() {
     sendBtn.disabled = true;
 
     try {
+        // Add context "(I'm Sarah Lee)" to the message
+        const promptWithContext = `${message} (I'm Sarah Lee)`;
+        
+        console.log("Sending request to:", API_URL);
+        console.log("Request body:", { query: promptWithContext });
+        
         const response = await fetch(API_URL, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ question: message }),
+            body: JSON.stringify({ query: promptWithContext }),
         });
 
+        console.log("Response status:", response.status);
+        console.log("Response headers:", response.headers);
+        
         const data = await response.json();
+        console.log("Response data:", data);
 
-        if (response.ok && data.status === "success") {
-            // Add assistant response
-            addMessage(data.answer, "assistant");
+        if (response.ok) {
+            // Handle response - check for explanation + data table format
+            let messageHTML = "";
+            
+            if (data.explanation) {
+                messageHTML += `<div>${data.explanation}</div>`;
+            }
+            
+            if (data.data && Array.isArray(data.data) && data.data.length > 0) {
+                // Generate HTML table from data array, exclude email column
+                let headers = Object.keys(data.data[0]);
+                headers = headers.filter(h => h !== "email");  // Exclude email column
+                
+                messageHTML += `
+                    <table style="border-collapse: collapse; margin-top: 10px; width: 100%;">
+                        <thead style="background-color: #f0f0f0;">
+                            <tr>
+                                ${headers.map(h => `<th style="border: 1px solid #ddd; padding: 6px; text-align: left; font-size: 12px;">${h}</th>`).join("")}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${data.data.map(row => `
+                                <tr>
+                                    ${headers.map(h => `<td style="border: 1px solid #ddd; padding: 6px; font-size: 12px;">${row[h]}</td>`).join("")}
+                                </tr>
+                            `).join("")}
+                        </tbody>
+                    </table>
+                `;
+            }
+            
+            // Fallback if no explanation or data
+            if (!messageHTML) {
+                messageHTML = data.answer || data.response || data.result || data.output || JSON.stringify(data);
+            }
+            
+            addMessage(messageHTML, "assistant", !!data.data);
         } else {
             // Add error message
-            addMessage(`Error: ${data.message || "Unknown error"}`, "assistant");
+            addMessage(`Error: ${data.message || response.statusText || "Unknown error"}`, "assistant");
         }
     } catch (error) {
-        console.error("Error:", error);
-        addMessage(`Network error: ${error.message}`, "assistant");
+        console.error("Fetch error:", error);
+        console.error("Error message:", error.message);
+        
+        // More specific error messages
+        if (error.message.includes("Failed to fetch")) {
+            addMessage("Network error: Cannot reach the server. This may be a CORS issue or the server is offline.", "assistant");
+        } else {
+            addMessage(`Error: ${error.message}`, "assistant");
+        }
     } finally {
         loading.classList.remove("active");
         sendBtn.disabled = false;
@@ -98,14 +153,41 @@ async function sendMessage() {
     }
 }
 
-function addMessage(text, sender) {
+function addMessage(text, sender, isHTML = false) {
     const messageDiv = document.createElement("div");
     messageDiv.className = `message ${sender}-message`;
 
-    const p = document.createElement("p");
-    p.textContent = text;
+    if (isHTML && text.includes("<table")) {
+        // Separate explanation and table
+        const explanationMatch = text.match(/<div>(.*?)<\/div>/s);
+        const tableMatch = text.match(/<table[\s\S]*<\/table>/);
+        
+        if (explanationMatch) {
+            const explanationDiv = document.createElement("p");
+            explanationDiv.textContent = explanationMatch[1].trim();
+            explanationDiv.style.whiteSpace = "pre-wrap";
+            messageDiv.appendChild(explanationDiv);
+        }
+        
+        if (tableMatch) {
+            const tableContainer = document.createElement("div");
+            tableContainer.className = "table-container";
+            tableContainer.innerHTML = tableMatch[0];
+            messageDiv.appendChild(tableContainer);
+        }
+    } else {
+        const p = document.createElement("p");
+        
+        if (isHTML) {
+            p.innerHTML = text;
+        } else {
+            p.textContent = text;
+        }
+        
+        p.style.whiteSpace = "pre-wrap";
+        messageDiv.appendChild(p);
+    }
 
-    messageDiv.appendChild(p);
     messagesContainer.appendChild(messageDiv);
 
     // Auto scroll to bottom
@@ -120,40 +202,15 @@ function addMessage(text, sender) {
 // User configuration
 const DEFAULT_USER = "Sarah Lee";
 
-// Load greeting on page startup
-async function loadGreeting() {
-    console.log("Loading greeting...");
-    const today = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-    const greetingPrompt = `User: Sarah Lee\nToday's date: ${today}\n\nGenerate a friendly, warm greeting message for the user that includes today's date. Keep it brief (1-2 sentences). Be professional but personable.`;
+// Load initial messages on page startup
+function loadGreeting() {
+    console.log("Loading initial messages...");
     
-    try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ question: greetingPrompt }),
-        });
-
-        const data = await response.json();
-        console.log("Greeting response:", data);
-
-        if (response.ok && data.status === "success") {
-            // Add assistant greeting (no user message shown)
-            addMessage(data.answer, "assistant");
-            console.log("Greeting added successfully");
-        } else {
-            // Fallback greeting if API fails
-            console.error("API error, using fallback");
-            addMessage("Hello! I'm ready to help you. How can I assist?", "assistant");
-        }
-    } catch (error) {
-        console.error("Error loading greeting:", error);
-        // Fallback greeting if network fails
-        addMessage("Hello! I'm ready to help you. How can I assist?", "assistant");
-    }
+    // Message 1: Greeting with date
+    addMessage("Hello Sarah Lee! I hope you're having a wonderful Thursday, March 19, 2026. 🌞", "assistant");
+    
+    // Message 2: Warning
+    addMessage("⚠️ Warning:\n You have 1 account is about to expire soon.", "assistant");
+    
+    console.log("Initial messages added successfully");
 }
-
-// Page load - load greeting immediately
-console.log("Script loaded, attempting to load greeting...");
-loadGreeting();
